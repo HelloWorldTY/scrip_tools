@@ -107,14 +107,14 @@ class sheet:
         df = self.pre_process(sheet_df,name_rule)
         self.entire_en         = ( df.drop(df[df["FieldName"].str.lower() == "reserved"].index).RegAccess == df.drop(df[df["FieldName"].str.lower() == "reserved"].index).FiledAccess ).all()
         self.signal_update_en  = ( 'update_en' if self.name_rule else 'UpDateEn' ) if self.shadow_en else ""
-        self.signal_rstn      = 'rst_n'     if self.name_rule else 'Rstn'
-        self.signal_clk       = 'clk'       if self.name_rule else 'Clk'
-        self.signal_p_sel     = 'p_sel'     if self.name_rule else 'PSel'
-        self.signal_p_enbale  = 'p_enbale'  if self.name_rule else 'PEnable'
-        self.signal_p_addr    = 'p_addr'    if self.name_rule else 'PAddr'
-        self.signal_p_write   = 'p_write'   if self.name_rule else 'PWrite'
-        self.signal_p_wr_data = 'p_wr_data' if self.name_rule else 'PWrData'
-        self.signal_p_rd_data = 'p_rd_data' if self.name_rule else 'PRdData'
+        self.signal_rstn      = 'presetn'   if self.name_rule else 'Rstn'
+        self.signal_clk       = 'pclk'      if self.name_rule else 'Clk'
+        self.signal_p_sel     = 'psel'      if self.name_rule else 'PSel'
+        self.signal_p_enbale  = 'penbale'   if self.name_rule else 'PEnable'
+        self.signal_p_addr    = 'paddr'     if self.name_rule else 'PAddr'
+        self.signal_p_write   = 'pwrite'    if self.name_rule else 'PWrite'
+        self.signal_p_wdata   = 'pwdata'    if self.name_rule else 'PWrData'
+        self.signal_p_rdata   = 'prdata'    if self.name_rule else 'PRdData'
 
         self.cal_max_len(df)
         self.gen_module_head(sheet_name)
@@ -224,7 +224,7 @@ class sheet:
                  suffix_en = 1
                  wr_en_reg = 1
 
-        max_len_of_fixed_signal     = max(len(self.signal_rstn),len(self.signal_clk),len(self.signal_update_en),len(self.signal_p_sel),len(self.signal_p_enbale),len(self.signal_p_addr),len(self.signal_p_write),len(self.signal_p_wr_data),len(self.signal_p_rd_data))
+        max_len_of_fixed_signal     = max(len(self.signal_rstn),len(self.signal_clk),len(self.signal_update_en),len(self.signal_p_sel),len(self.signal_p_enbale),len(self.signal_p_addr),len(self.signal_p_write),len(self.signal_p_wdata),len(self.signal_p_rdata))
 
         self.max_len_of_RegName     = max([len(str( reg_name )) for reg_name in df.RegName])
         self.max_len_of_FieldName   = max([len(str( filed_name )) for filed_name in df.FieldName])
@@ -258,7 +258,7 @@ class sheet:
         self.max_len_of_extend_port_direction     = 6 + (4 if wr_en_reg else 0) #'output reg'
 
         if ( rd_en_reg or wr_en_reg ):
-            self.max_len_of_wire_declare_right_val = max(11+len(self.signal_p_sel)+len(self.signal_p_write)+len(self.signal_p_enbale),18+len(self.signal_p_addr)+self.max_len_of_RegName)# wire spi_wr_data_rd = ( PAddr == SPI_WR_DATA ) && apb_rd;
+            self.max_len_of_wire_declare_right_val = max(11+len(self.signal_p_sel)+len(self.signal_p_write)+len(self.signal_p_enbale),18+len(self.signal_p_addr)+self.max_len_of_RegName)# wire spi_wdata_rd = ( PAddr == SPI_wdata ) && apb_rd;
         self.max_len_of_wire_declare_left_val      = max(self.max_len_of_group_name_suffix_wr_done,(self.max_len_of_RegName + (len('_reg') if wr_reg_add_suffix_en else len('_wr'))))
 
     def gen_module_head(self,sheet_name=None):
@@ -275,8 +275,8 @@ class sheet:
         self.port_lst.append(f'''{sheet.tab}{f'{"input":<{self.max_len_of_extend_port_direction}}'+"         ":<{self.max_len_of_port_width}} {self.signal_p_enbale:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
         self.port_lst.append(f'''{sheet.tab}{f'{"input":<{self.max_len_of_extend_port_direction}}'+" [32-1:0]":<{self.max_len_of_port_width}} {self.signal_p_addr:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
         self.port_lst.append(f'''{sheet.tab}{f'{"input":<{self.max_len_of_extend_port_direction}}'+"         ":<{self.max_len_of_port_width}} {self.signal_p_write:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
-        self.port_lst.append(f'''{sheet.tab}{f'{"input":<{self.max_len_of_extend_port_direction}}'+" [32-1:0]":<{self.max_len_of_port_width}} {self.signal_p_wr_data:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
-        self.port_lst.append(f'''{sheet.tab}{f'{"output reg":<{self.max_len_of_extend_port_direction}}'+" [32-1:0]":<{self.max_len_of_port_width}} {self.signal_p_rd_data:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
+        self.port_lst.append(f'''{sheet.tab}{f'{"input":<{self.max_len_of_extend_port_direction}}'+" [32-1:0]":<{self.max_len_of_port_width}} {self.signal_p_wdata:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
+        self.port_lst.append(f'''{sheet.tab}{f'{"output reg":<{self.max_len_of_extend_port_direction}}'+" [32-1:0]":<{self.max_len_of_port_width}} {self.signal_p_rdata:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
 
         self.param_lst.append(f'\n//----------------------------local parameter---------------------------------------------')
         self.wire_lst.append(f'\n//----------------------------local wire/reg declaration------------------------------------------')
@@ -318,7 +318,7 @@ class sheet:
         block_rd_lst = []
         for reg in self.rd_reg_lst:
             block_rd_lst.append(f'''{sheet.tab*2}{reg.upper()}:''')
-            block_rd_lst.append(f'''{sheet.tab*3}{self.signal_p_rd_data} <= {reg.lower()};''')
+            block_rd_lst.append(f'''{sheet.tab*3}{self.signal_p_rdata} <= {reg.lower()};''')
         if( block_rd_lst ):
             self.block_lst.append(f'\n//APB read')
             self.block_lst.append(f'always @ ( * )')
@@ -327,7 +327,7 @@ class sheet:
             self.block_lst.append(f'''{sheet.tab}case( {self.signal_p_addr} )''')
             self.block_lst.extend(block_rd_lst)
             self.block_lst.append(f'''{sheet.tab*2}default:''')
-            self.block_lst.append(f'''{sheet.tab*3}{self.signal_p_rd_data} <= 'h0;''')
+            self.block_lst.append(f'''{sheet.tab*3}{self.signal_p_rdata} <= 'h0;''')
             self.block_lst.append(f'{sheet.tab}endcase')
             self.block_lst.append(f'end\n')
 
@@ -444,13 +444,13 @@ class sheet:
 
         if group_entire_en:
             if( group_control_dict['wr_en'] and group_control_dict['rd_en'] ):
-                max_len_of_block_assign_right_val = max(max((max(len(str( wr_reg_name )),len(str(RegName)) + (len(self.shadow_suffix) if group_shadow_en_any else 0)) + (2*self.max_len_of_Width + 3)),max_len_of_group_rd_fieldname_lst),(max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wr_data) if w1_cst_en_reg else 0 ))))#W1C/S/T #' & ~PWrData[13:11]'
+                max_len_of_block_assign_right_val = max(max((max(len(str( wr_reg_name )),len(str(RegName)) + (len(self.shadow_suffix) if group_shadow_en_any else 0)) + (2*self.max_len_of_Width + 3)),max_len_of_group_rd_fieldname_lst),(max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wdata) if w1_cst_en_reg else 0 ))))#W1C/S/T #' & ~PWrData[13:11]'
             elif( group_control_dict['wr_en'] ):
-                max_len_of_block_assign_right_val = max(max((max(len(str( wr_reg_name )),len(str( wr_reg_name )) + (len(self.shadow_suffix) if group_shadow_en_any else 0)) + (2*self.max_len_of_Width + 3))),(max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wr_data))) if w1_cst_en_reg else 0 ))#W1C/S/T #' & ~PWrData[13:11]'
+                max_len_of_block_assign_right_val = max(max((max(len(str( wr_reg_name )),len(str( wr_reg_name )) + (len(self.shadow_suffix) if group_shadow_en_any else 0)) + (2*self.max_len_of_Width + 3))),(max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wdata))) if w1_cst_en_reg else 0 ))#W1C/S/T #' & ~PWrData[13:11]'
             else:
-                max_len_of_block_assign_right_val = max(max_len_of_group_rd_fieldname_lst,(max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wr_data)) if w1_cst_en_reg else 0 )))#W1C/S/T #' & ~PWrData[13:11]'
+                max_len_of_block_assign_right_val = max(max_len_of_group_rd_fieldname_lst,(max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wdata)) if w1_cst_en_reg else 0 )))#W1C/S/T #' & ~PWrData[13:11]'
         else:
-            max_len_of_block_assign_right_val = max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wr_data)) if w1_cst_en_reg else 0 )  #W1C/S/T #' & ~PWrData[13:11]'
+            max_len_of_block_assign_right_val = max_len_of_group_name + ( (2*self.max_len_of_Width + 7 + len(self.signal_p_wdata)) if w1_cst_en_reg else 0 )  #W1C/S/T #' & ~PWrData[13:11]'
 
         max_len_of_block_assign_left_val  = max_len_of_group_left_name + self.max_len_of_name_suffix + 2*self.max_len_of_Width + 3 #[21:10]
 
@@ -500,10 +500,10 @@ class sheet:
 
                 if ( group_control_dict['wr_once'] ):
                     block_block_lst.append(f'{sheet.tab}else if( {RegName.lower()}_wr && ~{RegName}_wr_done )')
-                    block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_reg_name} <= {self.signal_p_wr_data};''')
+                    block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_reg_name} <= {self.signal_p_wdata};''')
                 else:
                     block_block_lst.append(f'{sheet.tab}else if( {RegName.lower()}_wr )')
-                    block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_reg_name} <= {self.signal_p_wr_data};''')
+                    block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_reg_name} <= {self.signal_p_wdata};''')
                 block_block_lst.append(f'end\n')
 
                 # group write when group_entire_en && group_control_dict['wr_en'] && group_shadow_en
@@ -563,10 +563,10 @@ class sheet:
 
                     if ( control_dict['wr_once'] ):
                         block_block_lst.append(f'{sheet.tab}else if( {RegName.lower()}_wr && ~{group.loc[row_index,"FieldName_Cal"]}_wr_done )')
-                        block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_field} <= {self.signal_p_wr_data}[{f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else ''}{group.loc[row_index,"Low"]}];''')
+                        block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_field} <= {self.signal_p_wdata}[{f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else ''}{group.loc[row_index,"Low"]}];''')
                     else:
                         block_block_lst.append(f'{sheet.tab}else if( {RegName.lower()}_wr )')
-                        block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_field} <= {self.signal_p_wr_data}[{f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else ''}{group.loc[row_index,"Low"]}];''')
+                        block_block_lst.append(f'''{sheet.tab}{sheet.tab}{wr_field} <= {self.signal_p_wdata}[{f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else ''}{group.loc[row_index,"Low"]}];''')
                     block_block_lst.append(f'end\n')
 
                     if shadow_en :
@@ -626,17 +626,17 @@ class sheet:
                         self.port_lst.append(f'''{sheet.tab}{"output":<{self.max_len_of_extend_port_direction}} {' ' :>{self.max_len_of_port_width}} {group.loc[row_index,"FieldName_Cal"]+self.clr_suffix:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
                         self.port_lst.append(f'''{sheet.tab}{"output":<{self.max_len_of_extend_port_direction}} {'['+f'{str(group.loc[row_index,"Len_Cal"]):>{self.max_len_of_Width}}'+"-1:0]" if group.loc[row_index,"Len_Cal"] > 1 else ' ' :>{self.max_len_of_port_width}} {group.loc[row_index,"FieldName_Cal"]+self.clr_val_suffix:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
                         block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.clr_suffix:<{max_len_of_block_assign_left_val}} = {RegName.lower()+'_wr':<{max_len_of_block_assign_right_val}};''')
-                        block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.clr_val_suffix:<{max_len_of_block_assign_left_val}} = {f'{group.loc[row_index,"FieldName_Cal"]}'+' & '+('~' if control_dict['wr_one_clear'] else '')+self.signal_p_wr_data+'['+str(f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else '')+str(group.loc[row_index,"Low"])+']':<{max_len_of_block_assign_right_val}};''')
+                        block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.clr_val_suffix:<{max_len_of_block_assign_left_val}} = {f'{group.loc[row_index,"FieldName_Cal"]}'+' & '+('~' if control_dict['wr_one_clear'] else '')+self.signal_p_wdata+'['+str(f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else '')+str(group.loc[row_index,"Low"])+']':<{max_len_of_block_assign_right_val}};''')
                     elif ( control_dict['wr_one_set'] or control_dict['wr_zero_set'] ):
                         self.port_lst.append(f'''{sheet.tab}{"output":<{self.max_len_of_extend_port_direction}} {' ' :>{self.max_len_of_port_width}} {group.loc[row_index,"FieldName_Cal"]+self.set_suffix:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
                         self.port_lst.append(f'''{sheet.tab}{"output":<{self.max_len_of_extend_port_direction}} {'['+f'{str(group.loc[row_index,"Len_Cal"]):>{self.max_len_of_Width}}'+"-1:0]" if group.loc[row_index,"Len_Cal"] > 1 else ' ' :>{self.max_len_of_port_width}} {group.loc[row_index,"FieldName_Cal"]+self.set_val_suffix:<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
                         block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.set_suffix:<{max_len_of_block_assign_left_val}} = {RegName.lower()+'_wr':<{max_len_of_block_assign_right_val}};''')
-                        block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.set_val_suffix:<{max_len_of_block_assign_left_val}} = {f'{group.loc[row_index,"FieldName_Cal"]}'+' | '+('~' if control_dict['wr_zero_set'] else '')+self.signal_p_wr_data+'['+str(f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else '')+str(group.loc[row_index,"Low"])+']':<{max_len_of_block_assign_right_val}};''')
+                        block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.set_val_suffix:<{max_len_of_block_assign_left_val}} = {f'{group.loc[row_index,"FieldName_Cal"]}'+' | '+('~' if control_dict['wr_zero_set'] else '')+self.signal_p_wdata+'['+str(f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else '')+str(group.loc[row_index,"Low"])+']':<{max_len_of_block_assign_right_val}};''')
                     elif ( control_dict['wr_one_toggle'] or control_dict['wr_zero_toggle'] ):
                         self.port_lst.append(f'''{sheet.tab}{"output":<{self.max_len_of_extend_port_direction}} {' ' :>{self.max_len_of_port_width}} {group.loc[row_index,"FieldName_Cal"]+'Tgl':<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
                         self.port_lst.append(f'''{sheet.tab}{"output":<{self.max_len_of_extend_port_direction}} {'['+f'{str(group.loc[row_index,"Len_Cal"]):>{self.max_len_of_Width}}'+"-1:0]" if group.loc[row_index,"Len_Cal"] > 1 else ' ' :>{self.max_len_of_port_width}} {group.loc[row_index,"FieldName_Cal"]+'TglVal':<{self.max_len_of_port_name+self.max_len_of_name_suffix}},''')
                         block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.tgl_suffix:<{max_len_of_block_assign_left_val}} = {RegName.lower()+'_wr':<{max_len_of_block_assign_right_val}};''')
-                        block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.tgl_val_suffix:<{max_len_of_block_assign_left_val}} = {f'{group.loc[row_index,"FieldName_Cal"]}'+' ^ '+('~' if control_dict['wr_zero_toggle'] else '')+self.signal_p_wr_data+'['+str(f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else '')+str(group.loc[row_index,"Low"])+']':<{max_len_of_block_assign_right_val}};''')
+                        block_assign_lst.append(f'''assign {group.loc[row_index,"FieldName_Cal"]+self.tgl_val_suffix:<{max_len_of_block_assign_left_val}} = {f'{group.loc[row_index,"FieldName_Cal"]}'+' ^ '+('~' if control_dict['wr_zero_toggle'] else '')+self.signal_p_wdata+'['+str(f'{group.loc[row_index,"High"]}'+':' if group.loc[row_index,"Len_Cal"] > 1 else '')+str(group.loc[row_index,"Low"])+']':<{max_len_of_block_assign_right_val}};''')
 
         self.block_lst = self.block_lst + block_assign_lst + block_block_lst
 

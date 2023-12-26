@@ -317,18 +317,22 @@ class sheet:
     def gen_block_rd(self):
         block_rd_lst = []
         for reg in self.rd_reg_lst:
-            block_rd_lst.append(f'''{sheet.tab*2}{reg.upper()}:''')
-            block_rd_lst.append(f'''{sheet.tab*3}{self.signal_p_rdata} <= {reg.lower()};''')
+            block_rd_lst.append(f'''{sheet.tab*3}{reg.upper()}:''')
+            block_rd_lst.append(f'''{sheet.tab*4}{self.signal_p_rdata} <= {reg.lower()};''')
         if( block_rd_lst ):
             self.block_lst.append(f'\n//APB read')
-            self.block_lst.append(f'always @ ( * )')
+            self.block_lst.append(f'always @ ( posedge {self.signal_clk } or negedge {self.signal_rstn})')
             self.block_lst.append(f'begin')
+            self.block_lst.append(f'{sheet.tab}if( ~{self.signal_rstn} )')
+            self.block_lst.append(f'''{sheet.tab*2}{self.signal_p_rdata} <= 'h0;''')
+            self.block_lst.append(f'{sheet.tab}else if( apb_rd ) begin')
 
-            self.block_lst.append(f'''{sheet.tab}case( {self.signal_p_addr} )''')
+            self.block_lst.append(f'''{sheet.tab*2}case( {self.signal_p_addr} )''')
             self.block_lst.extend(block_rd_lst)
-            self.block_lst.append(f'''{sheet.tab*2}default:''')
-            self.block_lst.append(f'''{sheet.tab*3}{self.signal_p_rdata} <= 'h0;''')
-            self.block_lst.append(f'{sheet.tab}endcase')
+            self.block_lst.append(f'''{sheet.tab*3}default:''')
+            self.block_lst.append(f'''{sheet.tab*4}{self.signal_p_rdata} <= 'h0;''')
+            self.block_lst.append(f'{sheet.tab*2}endcase')
+            self.block_lst.append(f'{sheet.tab}end')
             self.block_lst.append(f'end\n')
 
     def parse_Access(self,Access=None,FiledName=None):

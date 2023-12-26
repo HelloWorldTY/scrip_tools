@@ -63,7 +63,6 @@ class sheet:
 * @LastEditTime : {creat_info_dict['LastEditTime']}
 * @LastEditors  : {creat_info_dict['Author']}
 * @Description  : {sheet_name} apb cfg
-* @FilePath     : {os.path.abspath('.')}\{tar_file_name}
 */
 '''
         self.name_rule         = 0

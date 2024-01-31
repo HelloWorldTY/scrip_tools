@@ -169,7 +169,8 @@ class sheet:
             self.name_rule = name_rule - 1
 
         df.insert(7,"Len_Cal",df["Len"])
-        df.insert(11,"FieldName_Cal",df["FieldName"].str.lower() if self.name_rule else df["FieldName"] )
+        # df.insert(11,"FieldName_Cal",df["FieldName"].str.lower() if self.name_rule else df["FieldName"] )
+        df.insert(11,"FieldName_Cal", df["FieldName"] )
         df.insert(16,"ResetValue_Cal",df["ResetValue"])
 
         for row_index in df.index:
@@ -210,6 +211,7 @@ class sheet:
         wr_en_reg          = 0
         done_fieldname_lst = []
         for row_index in df.index:
+            control_dict = {'wr_en':0,'wr_once':0,'wr_clear':0,'wr_set':0,'wr_one_clear':0,'wr_one_set':0,'wr_one_toggle':0,'wr_zero_clear':0,'wr_zero_set':0,'wr_zero_toggle':0,'rd_en':0,'rd_en_wr':0,'rd_only':0,'rd_clear':0,'rd_set':0}
             if( not( df.loc[row_index,"FieldName"].lower() == "reserved" ) ):
                 control_dict = self.parse_Access(df.loc[row_index,"FiledAccess"],df.loc[row_index,"FieldName"])
 

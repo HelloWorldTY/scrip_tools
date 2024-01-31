@@ -110,7 +110,8 @@ class module:
     regex_module_ports = re.compile(r'''
         ^[ \t]*(?!//)[ \t]*?,?(output|input|inout)           #1 direction
         [ \t]*
-        (wire|reg)?                                          #2 type
+        # (wire|reg)?                                          #2 type
+        \b(wire|reg)?\b                                          #2 type
         [ \t]*
         ((?:\[[`'{},()\w \t+\-*/<>:?]+\])*)                  #3 width
         [ \t]*

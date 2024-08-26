@@ -14,6 +14,7 @@ import re
 import logging
 import argparse
 import glob
+import math
 
 class sources:
     def __init__(self,file_name=None,module_name=None,ins_mode='inst_&_wire',ins_name=None,indentation=30,tar_file_name='DUT.sv'):
@@ -109,7 +110,8 @@ class module:
     regex_module_ports = re.compile(r'''
         ^[ \t]*(?!//)[ \t]*?(?:\(.*\))?[ \t]*?,?(output|input|inout)   #1 direction
         [ \t]*
-        (wire|reg)?                                                    #2 type
+        # (wire|reg)?                                          #2 type
+        \b(wire|reg)?\b                                          #2 type
         [ \t]*
         ((?:\[[`'{},()\w \t+\-*/<>:?]+\][ \t]*)*)                      #3 width
         [ \t]*
@@ -215,9 +217,9 @@ class module:
             # wire
             for i in range(ports_num):
                 if self.ports_info_list[i]['flag']:
-                    self.out_line_list.append('{:<4} {:>{}} {:<{}};{}'.format('reg' if self.ports_info_list[i]['type'] == 'reg' else 'wire',
-                                                                   self.ports_info_list[i]['width']  ,ports_max_width_of_width,
-                                                                   self.ports_info_list[i]['name']   ,ports_max_width_of_name  ,
+                    self.out_line_list.append('{:<4} {:<{}} {:<{}};{}'.format('reg' if self.ports_info_list[i]['type'] == 'reg' else 'wire',
+                                                                   self.ports_info_list[i]['width']  ,  self.round_up(ports_max_width_of_width+2, 4)-2,
+                                                                   self.ports_info_list[i]['name']   ,self.round_up(ports_max_width_of_name, 4),
                                                                    self.ports_info_list[i]['comment']  ))
                 else:
                     self.out_line_list.append('{}'.format(self.ports_info_list[i]['comment'].lstrip()))
@@ -249,8 +251,8 @@ class module:
             if self.ports_info_list[i]['flag']:
                 ports_cnt_vld += 1
                 for j,port_name in enumerate(self.ports_info_list[i]['name'].split(',')):
-                    self.out_line_list.append('.{:<{}} ( {:<{}} ){}{}'.format(port_name.lstrip(),ins_max_width_of_name,
-                                                                              port_name.lstrip(),ins_max_width_of_value,
+                    self.out_line_list.append('.{:<{}} ( {:<{}} ){}{}'.format(port_name.lstrip(), self.round_up(ins_max_width_of_name+2, 4)-2,
+                                                                              port_name.lstrip(), self.round_up(ins_max_width_of_value+3, 4)-3,
                                                                               ',' if not( ports_cnt_vld == ports_num_vld and j == len(self.ports_info_list[i]['name'].split(','))-1 ) else "",
                                                                               self.ports_info_list[i]['comment']  ))
                     logging.debug(f"ports_info_list:\t{self.ports_info_list[i]['name']}:j\t:{j}")
@@ -258,6 +260,9 @@ class module:
                 self.out_line_list.append('{}'.format(self.ports_info_list[i]['comment'].lstrip()))
 
         self.out_line_list.append(');{}\n'.format(self.comment))
+
+    def round_up(self, num, multiple):
+        return int(math.ceil(num / multiple) * multiple)
 
 def arg_parser():
     parser = argparse.ArgumentParser(allow_abbrev = True)
